@@ -1,0 +1,81 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sjsu_event_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sjsu_events
+      MYSQL_USER: sjsu_user
+      MYSQL_PASSWORD: sjsu_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "sjsu_user",
+          "-psjsu_password",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: sjsu_server
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sjsu_events
+      SPRING_DATASOURCE_USERNAME: sjsu_user
+      SPRING_DATASOURCE_PASSWORD: sjsu_password
+    depends_on:
+      mysql:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./server/src/main/java
+        - action: rebuild
+          path: ./server/src/main/resources
+        - action: rebuild
+          path: ./server/pom.xml
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: sjsu_client
+    restart: always
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - server
+    develop:
+      watch:
+        - action: sync
+          path: ./client/src
+          target: /app/src
+        - action: sync
+          path: ./client/public
+          target: /app/public
+        - action: rebuild
+          path: ./client/package.json
+
+volumes:
+  mysql_data:

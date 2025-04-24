@@ -1,0 +1,25 @@
+{
+  "name": "sjsu-event-manager",
+  "private": true,
+  "version": "0.0.1",
+  "description": "SJSU Event Management System Monorepo",
+  "scripts": {
+    "dev": "pnpm --filter client dev",
+    "build": "pnpm --filter client build",
+    "preview": "pnpm --filter client preview",
+    "server": "cd server && ./mvnw spring-boot:run",
+    "db:start": "docker-compose up -d mysql",
+    "db:stop": "docker-compose down",
+    "db:logs": "docker-compose logs -f mysql",
+    "start": "pnpm db:start && pnpm dev",
+    "stop": "pnpm db:stop",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  }
+}
