@@ -1,86 +1,50 @@
-import { useState, useEffect } from "react";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-interface Event {
-  eventId: number;
-  title: string;
-  description: string;
-  location: string;
-  startTime: string;
-  endTime: string;
-}
+import Index from "./pages/Index";
+import EventsPage from "./pages/EventsPage";
+import EventDetail from "./pages/EventDetail";
+import CreateEvent from "./pages/CreateEvent";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Profile from "./pages/Profile";
+import NotFound from "./pages/NotFound";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
-function App() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+const queryClient = new QueryClient();
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/events");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: Event[] = await response.json();
-        setEvents(data);
-      } catch (e) {
-        if (e instanceof Error) {
-          setError(e.message);
-        } else {
-          setError("An unknown error occurred");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-      </div>
-      <h1>SJSU Event Manager</h1>
-
-      <div className="card">
-        <h2>Upcoming Events</h2>
-        {loading && <p>Loading events...</p>}
-        {error && (
-          <p style={{ color: "red" }}>Error fetching events: {error}</p>
-        )}
-        {!loading && !error && (
-          <ul>
-            {events.length > 0 ? (
-              events.map((event) => (
-                <li key={event.eventId}>
-                  <h3>{event.title}</h3>
-                  <p>{event.description}</p>
-                  <p>
-                    <strong>Location:</strong> {event.location}
-                  </p>
-                  <p>
-                    <strong>Time:</strong>{" "}
-                    {new Date(event.startTime).toLocaleString()} -{" "}
-                    {new Date(event.endTime).toLocaleString()}
-                  </p>
-                </li>
-              ))
-            ) : (
-              <p>No active events found.</p>
-            )}
-          </ul>
-        )}
-      </div>
-
-      <p className="read-the-docs">Welcome to the SJSU Event Manager.</p>
-    </>
-  );
-}
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1 bg-gray-50">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/events/:id" element={<EventDetail />} />
+                <Route path="/create-event" element={<CreateEvent />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;
