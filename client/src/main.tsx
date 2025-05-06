@@ -13,6 +13,7 @@ import { RootComponent } from "./components/RootComponent";
 import { IndexPage } from "./routes/index";
 import { Login } from "./routes/login";
 import { Register } from "./routes/register";
+import { Events } from "./routes/events";
 
 const rootRoute = createRootRoute({ component: RootComponent });
 
@@ -31,11 +32,17 @@ const registerRoute = createRoute({
   path: "/register",
   component: Register,
 });
+const eventsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events",
+  component: Events,
+});
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
+  eventsRoute,
 ]);
 
 const router = createRouter({ routeTree, context: { auth: undefined! } });

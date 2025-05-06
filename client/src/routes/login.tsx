@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { useAuth } from "../hooks/useAuth";
+import '../styles/auth.css';
 
 export const Login = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
@@ -30,11 +31,11 @@ export const Login = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="usernameOrEmail">Username or Email:</label>
+    <div className="auth-container">
+      <h2>Welcome Back</h2>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="usernameOrEmail">Username or Email</label>
           <input
             id="usernameOrEmail"
             type="text"
@@ -43,8 +44,8 @@ export const Login = () => {
             required
           />
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
           <input
             id="password"
             type="password"
@@ -53,11 +54,14 @@ export const Login = () => {
             required
           />
         </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit" disabled={isLoading}>
+        {error && <div className="error-message">{error}</div>}
+        <button className="auth-button" type="submit" disabled={isLoading}>
           {isLoading ? "Logging in..." : "Login"}
         </button>
       </form>
+      <div className="auth-link">
+        Don't have an account? <Link to="/register">Register here</Link>
+      </div>
     </div>
   );
 };

@@ -1,0 +1,155 @@
+.event-card {
+  background: #1a1f2e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid #2a3142;
+  position: relative;
+  overflow: hidden;
+  color: #e0e0e0;
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  border-color: #3a4255;
+}
+
+.event-card.inactive {
+  opacity: 0.7;
+  background: #161b29;
+}
+
+.event-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.event-title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.event-status {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.status-badge.inactive {
+  background: rgba(255, 75, 75, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 75, 75, 0.3);
+}
+
+.capacity-badge {
+  background: rgba(58, 66, 85, 0.3);
+  color: #e0e0e0;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+  border: 1px solid #3a4255;
+}
+
+.event-location {
+  color: #b0b0b0;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.location-icon {
+  font-size: 1.1rem;
+}
+
+.event-description {
+  color: #b0b0b0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 1rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.event-card-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2a3142;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.event-time {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.time-slot {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.time-label {
+  color: #8b8b8b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 55px;
+}
+
+.time-value {
+  color: #b0b0b0;
+  font-size: 0.9rem;
+}
+
+.register-button {
+  background: #2a3142;
+  color: #e0e0e0;
+  border: 1px solid #3a4255;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.register-button:hover {
+  background: #3a4255;
+  border-color: #4a5265;
+  transform: translateY(-1px);
+}
+
+.register-button:disabled {
+  background: #1e1e1e;
+  border-color: #2a3142;
+  color: #8b8b8b;
+  cursor: not-allowed;
+}
+
+/* Focus styles for accessibility */
+.event-card:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(58, 66, 85, 0.3);
+} 

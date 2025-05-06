@@ -1,18 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { useAuth } from "../hooks/useAuth";
-import { authService } from "../services/authService";
+import "../styles/auth.css";
 
 export const Register = () => {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: ""
+  });
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { register, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -21,99 +21,93 @@ export const Register = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setSuccessMessage(null);
-    setIsLoading(true);
-
     try {
-      const response = await authService.register({
-        username,
-        email,
-        password,
-        firstName,
-        lastName,
-      });
-      setSuccessMessage(response.message + " You can now log in.");
-      setUsername("");
-      setEmail("");
-      setPassword("");
-      setFirstName("");
-      setLastName("");
+      await register(formData);
+      navigate({ to: "/" });
     } catch (err) {
       console.error("Registration failed:", err);
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred."
-      );
-    } finally {
-      setIsLoading(false);
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="username">Username:</label>
+    <div className="auth-container">
+      <h2>Create Account</h2>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="username">Username</label>
           <input
             id="username"
+            name="username"
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formData.username}
+            onChange={handleChange}
             required
           />
         </div>
-        <div>
-          <label htmlFor="email">Email:</label>
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
           <input
             id="email"
+            name="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
             required
           />
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
           <input
             id="password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
             required
           />
         </div>
-        <div>
-          <label htmlFor="firstName">First Name:</label>
+        <div className="form-group">
+          <label htmlFor="firstName">First Name</label>
           <input
             id="firstName"
+            name="firstName"
             type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            value={formData.firstName}
+            onChange={handleChange}
             required
           />
         </div>
-        <div>
-          <label htmlFor="lastName">Last Name:</label>
+        <div className="form-group">
+          <label htmlFor="lastName">Last Name</label>
           <input
             id="lastName"
+            name="lastName"
             type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            value={formData.lastName}
+            onChange={handleChange}
             required
           />
         </div>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "Registering..." : "Register"}
+        {error && <div className="error-message">{error}</div>}
+        <button className="auth-button" type="submit" disabled={isLoading}>
+          {isLoading ? "Creating Account..." : "Register"}
         </button>
       </form>
-      <p>
+      <div className="auth-link">
         Already have an account? <Link to="/login">Login here</Link>
-      </p>
+      </div>
     </div>
   );
 };

@@ -46,7 +46,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsernameOrEmail(), loginRequest.getPassword()));
 
@@ -54,15 +53,14 @@ public class AuthController {
         String jwt = jwtUtils.generateJwtToken(authentication);
 
         ResponseCookie jwtCookie = ResponseCookie.from("jwt-token", jwt)
-            .path("/api")
+            .path("/")
             .maxAge(jwtExpirationMs / 1000)
             .httpOnly(true)
             .secure(true)
-            .sameSite("Lax")
+            .sameSite("None")
             .build();
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("Error: User not found after authentication."));
 
@@ -82,11 +80,11 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser() {
         ResponseCookie cookie = ResponseCookie.from("jwt-token", "")
-                                            .path("/api")
+                                            .path("/")
                                             .maxAge(0)
                                             .httpOnly(true)
                                             .secure(true)
-                                            .sameSite("Lax")
+                                            .sameSite("None")
                                             .build();
 
         return ResponseEntity.ok()

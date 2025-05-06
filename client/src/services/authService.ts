@@ -13,7 +13,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<JwtResponse> => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`http://localhost:8080/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
