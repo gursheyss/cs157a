@@ -1,91 +1,60 @@
-import React from 'react';
-import './EventCard.css';
-
-interface Event {
-  eventId: number;
-  title: string;
-  description: string;
-  location: string;
-  startTime: string;
-  endTime: string;
-  maxAttendees?: number;
-  isActive: boolean;
-}
+import { EventResponseDTO } from "@/types";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 interface EventCardProps {
-  event: Event;
-  onClick?: (eventId: number) => void;
-  onRegister?: (eventId: number) => void;
+  event: EventResponseDTO;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event, onClick, onRegister }) => {
-  // Format the date to be more readable
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  };
+const EventCard = ({ event }: EventCardProps) => {
+  const navigate = useNavigate();
 
-  const handleRegisterClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent triggering the card click
-    onRegister?.(event.eventId);
-  };
+  const formattedDate = format(
+    new Date(event.startTime),
+    "MMM d, yyyy 'at' h:mm a"
+  );
 
   return (
-    <div 
-      className={`event-card ${!event.isActive ? 'inactive' : ''}`}
-      onClick={() => onClick?.(event.eventId)}
-      role="button"
-      tabIndex={0}
-    >
-      <div className="event-card-header">
-        <h3 className="event-title">{event.title}</h3>
-        <div className="event-status">
-          {!event.isActive && <span className="status-badge inactive">Inactive</span>}
-          {event.maxAttendees && (
-            <span className="capacity-badge">
-              Capacity: {event.maxAttendees}
-            </span>
-          )}
+    <Card className="overflow-hidden transition-all hover:shadow-lg">
+      <div className="h-40 overflow-hidden bg-muted">
+        <img
+          src={"/placeholder.svg"}
+          alt={event.title}
+          className="object-cover w-full h-full"
+        />
+      </div>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <h3 className="text-lg font-bold line-clamp-2">{event.title}</h3>
+          <Badge className="bg-sjsu-gold text-black">{event.category}</Badge>
         </div>
-      </div>
-      
-      <div className="event-location">
-        <span className="location-icon">📍</span>
-        {event.location}
-      </div>
-      
-      <p className="event-description">{event.description}</p>
-      
-      <div className="event-card-footer">
-        <div className="event-time">
-          <div className="time-slot">
-            <span className="time-label">Starts:</span>
-            <span className="time-value">{formatDate(event.startTime)}</span>
-          </div>
-          <div className="time-slot">
-            <span className="time-label">Ends:</span>
-            <span className="time-value">{formatDate(event.endTime)}</span>
-          </div>
-        </div>
-        
-        {event.isActive && (
-          <button 
-            className="register-button"
-            onClick={handleRegisterClick}
-            disabled={!event.isActive}
-          >
-            Register
-          </button>
-        )}
-      </div>
-    </div>
+        <p className="text-sm text-muted-foreground">{formattedDate}</p>
+      </CardHeader>
+      <CardContent className="pb-2">
+        <p className="text-sm line-clamp-2">{event.description}</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          <span className="font-medium">Location:</span> {event.location}
+        </p>
+      </CardContent>
+      <CardFooter>
+        <Button
+          variant="secondary"
+          className="w-full bg-sjsu-blue text-white hover:bg-sjsu-blue/90"
+          onClick={() => navigate(`/events/${event.eventId}`)}
+        >
+          View Details
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
-export default EventCard; 
+export default EventCard;
