@@ -135,6 +135,19 @@ public class RegistrationRepository {
         }
     }
 
+    // check if a registration exists for an event and user (for compatibility with EventService)
+    public boolean existsByEventIdAndUserId(Integer eventId, Integer userId) {
+        String sql = "SELECT COUNT(*) FROM registrations WHERE event_id = ? AND user_id = ?";
+        log.debug("Executing SQL: {} with eventId: {}, userId: {}", sql, eventId, userId);
+        try {
+            Integer count = jdbcTemplate.queryForObject(sql, Integer.class, eventId, userId);
+            return count != null && count > 0;
+        } catch (DataAccessException e) {
+            log.error("Error checking registration existence for eventId {} and userId {}: {}", eventId, userId, e.getMessage());
+            throw e;
+        }
+    }
+
     // count how many registrations there are for an event
     public long countByEventId(Integer eventId) {
         String sql = "SELECT COUNT(*) FROM registrations WHERE event_id = ?";

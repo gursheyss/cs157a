@@ -160,7 +160,7 @@ public class RegistrationRepositoryTest {
     public void testFindByUserAndEvent() {
         createTestData();
         // Test finding a registration by user and event
-        Optional<Registration> registration = registrationRepository.findByUserIdAndEventId(
+        Optional<Registration> registration = registrationRepository.findByUserAndEvent(
                 regularUser.getUserId(), conferenceEvent.getEventId());
         assertTrue(registration.isPresent());
         assertEquals(reg1.getRegistrationId(), registration.get().getRegistrationId());
@@ -200,9 +200,9 @@ public class RegistrationRepositoryTest {
     public void testExistsByUserAndEvent() {
         createTestData();
         // Test checking if a registration exists by user and event
-        assertTrue(registrationRepository.existsByUserIdAndEventId(
+        assertTrue(registrationRepository.existsByEventIdAndUserId(
                 regularUser.getUserId(), conferenceEvent.getEventId()));
-        assertFalse(registrationRepository.existsByUserIdAndEventId(
+        assertFalse(registrationRepository.existsByEventIdAndUserId(
                 regularUser.getUserId(), seminarEvent.getEventId()));
     }
 

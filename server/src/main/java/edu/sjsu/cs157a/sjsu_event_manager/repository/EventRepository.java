@@ -251,4 +251,19 @@ public class EventRepository {
             throw e;
         }
     }
+
+    /**
+     * check if an event exists by its id
+     */
+    public boolean existsById(Integer eventId) {
+        String sql = "SELECT COUNT(*) FROM events WHERE event_id = ?";
+        log.debug("Executing SQL: {} with eventId: {}", sql, eventId);
+        try {
+            Integer count = jdbcTemplate.queryForObject(sql, Integer.class, eventId);
+            return count != null && count > 0;
+        } catch (DataAccessException e) {
+            log.error("Error checking event existence for eventId {}: {}", eventId, e.getMessage());
+            throw e;
+        }
+    }
 } 
