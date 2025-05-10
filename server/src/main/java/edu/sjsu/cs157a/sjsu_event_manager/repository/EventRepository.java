@@ -29,41 +29,38 @@ public class EventRepository {
     private final JdbcTemplate jdbcTemplate;
     // inject userrepository to fetch the organizer user object for the event
     private final UserRepository userRepository;
+    private final RowMapper<Event> eventRowMapper;
 
     @Autowired
     public EventRepository(DataSource dataSource, UserRepository userRepository) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.userRepository = userRepository;
+
+        this.eventRowMapper = (rs, rowNum) -> {
+            Event event = new Event();
+            event.setEventId(rs.getInt("event_id"));
+            event.setTitle(rs.getString("title"));
+            event.setDescription(rs.getString("description"));
+            event.setLocation(rs.getString("location"));
+            event.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+            event.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+            event.setCategory(rs.getString("category"));
+            event.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            event.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+            event.setMaxAttendees(rs.getObject("max_attendees") != null ? rs.getInt("max_attendees") : null);
+
+            int organizerId = rs.getInt("organizer_id");
+            try {
+                this.userRepository.findById(organizerId).ifPresentOrElse(
+                    event::setOrganizer,
+                    () -> log.warn("Organizer user with ID {} not found for event ID {}", organizerId, event.getEventId())
+                );
+            } catch (DataAccessException e) {
+                log.error("Error fetching organizer user with ID {} for event ID {}: {}", organizerId, event.getEventId(), e.getMessage());
+            }
+            return event;
+        };
     }
-
-    /**
-     * this maps a row from the database to an event object
-     * it also loads the organizer user for the event
-     */
-    private final RowMapper<Event> eventRowMapper = (rs, rowNum) -> {
-        Event event = new Event();
-        event.setEventId(rs.getInt("event_id"));
-        event.setTitle(rs.getString("title"));
-        event.setDescription(rs.getString("description"));
-        event.setLocation(rs.getString("location"));
-        event.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-        event.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
-        event.setCategory(rs.getString("category"));
-        event.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        event.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-
-        int organizerId = rs.getInt("organizer_id");
-        try {
-             userRepository.findById(organizerId).ifPresentOrElse(
-                 event::setOrganizer,
-                 () -> log.warn("Organizer user with ID {} not found for event ID {}", organizerId, event.getEventId())
-             );
-        } catch (DataAccessException e) {
-            log.error("Error fetching organizer user with ID {} for event ID {}: {}", organizerId, event.getEventId(), e.getMessage());
-        }
-
-        return event;
-    };
 
     /**
      * get an event by its id
@@ -156,7 +153,7 @@ public class EventRepository {
      * insert a new event into the database
      */
     private Event insertEvent(Event event) {
-        String sql = "INSERT INTO events (title, description, location, start_time, end_time, category, organizer_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO events (title, description, location, start_time, end_time, category, organizer_id, max_attendees) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         int rowsAffected = jdbcTemplate.update(connection -> {
@@ -168,6 +165,11 @@ public class EventRepository {
             ps.setTimestamp(5, Timestamp.valueOf(event.getEndTime()));
             ps.setString(6, event.getCategory());
             ps.setInt(7, event.getOrganizer().getUserId());
+            if (event.getMaxAttendees() != null) {
+                ps.setInt(8, event.getMaxAttendees());
+            } else {
+                ps.setNull(8, Types.INTEGER);
+            }
             return ps;
         }, keyHolder);
 
@@ -192,7 +194,7 @@ public class EventRepository {
      * update an existing event
      */
     private Event updateEvent(Event event) {
-        String sql = "UPDATE events SET title = ?, description = ?, location = ?, start_time = ?, end_time = ?, category = ?, organizer_id = ? WHERE event_id = ?";
+        String sql = "UPDATE events SET title = ?, description = ?, location = ?, start_time = ?, end_time = ?, category = ?, organizer_id = ?, max_attendees = ? WHERE event_id = ?";
         int rowsAffected = jdbcTemplate.update(sql,
             event.getTitle(),
             event.getDescription(),
@@ -201,6 +203,7 @@ public class EventRepository {
             Timestamp.valueOf(event.getEndTime()),
             event.getCategory(),
             event.getOrganizer().getUserId(),
+            event.getMaxAttendees(),
             event.getEventId());
 
         if (rowsAffected == 0) {
