@@ -12,6 +12,8 @@ public class RegistrationResponseDTO {
     private LocalDateTime eventStartTime;
     private LocalDateTime eventEndTime;
     private String eventLocation;
+    private String eventDescription;
+    private String eventCategory;
 
     private Integer userId;
     private String userUsername;
@@ -43,6 +45,8 @@ public class RegistrationResponseDTO {
              this.eventStartTime = registration.getEvent().getStartTime();
              this.eventEndTime = registration.getEvent().getEndTime();
              this.eventLocation = registration.getEvent().getLocation();
+             this.eventDescription = registration.getEvent().getDescription();
+             this.eventCategory = registration.getEvent().getCategory();
         }
 
         if (registration.getUser() != null) {
@@ -106,6 +110,22 @@ public class RegistrationResponseDTO {
 
     public void setEventLocation(String eventLocation) {
         this.eventLocation = eventLocation;
+    }
+
+    public String getEventDescription() {
+        return eventDescription;
+    }
+
+    public void setEventDescription(String eventDescription) {
+        this.eventDescription = eventDescription;
+    }
+
+    public String getEventCategory() {
+        return eventCategory;
+    }
+
+    public void setEventCategory(String eventCategory) {
+        this.eventCategory = eventCategory;
     }
 
     public Integer getUserId() {

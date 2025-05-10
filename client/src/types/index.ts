@@ -24,10 +24,17 @@ export interface Event {
 export interface Registration {
   id: string;
   userId: string;
-  eventId: string;
   registrationTime: string;
   user?: User;
   event?: Event;
+
+  eventId: number;
+  eventTitle?: string;
+  eventStartTime?: string;
+  eventEndTime?: string;
+  eventLocation?: string;
+  eventDescription?: string;
+  eventCategory?: string;
 }
 
 // Corresponds to server/src/main/java/edu/sjsu/cs157a/sjsu_event_manager/dto/EventRequestDTO.java
