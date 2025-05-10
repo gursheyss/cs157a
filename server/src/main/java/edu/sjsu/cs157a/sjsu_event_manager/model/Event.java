@@ -57,6 +57,9 @@ public class Event {
     @Column(name = "updated_at", insertable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
 
+    @Column(name = "max_attendees")
+    private Integer maxAttendees;
+
     // Relationship to registrations (one event can have many registrations)
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Registration> registrations;
@@ -149,6 +152,14 @@ public class Event {
 
     public void setRegistrations(List<Registration> registrations) {
         this.registrations = registrations;
+    }
+
+    public Integer getMaxAttendees() {
+        return maxAttendees;
+    }
+
+    public void setMaxAttendees(Integer maxAttendees) {
+        this.maxAttendees = maxAttendees;
     }
 
     // Consider adding @PrePersist and @PreUpdate methods if needed for timestamps

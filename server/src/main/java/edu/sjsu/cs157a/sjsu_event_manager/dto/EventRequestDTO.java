@@ -31,6 +31,9 @@ public class EventRequestDTO {
     @Size(max = 100)
     private String category;
 
+    @jakarta.validation.constraints.Min(value = 1, message = "Max attendees must be at least 1")
+    private Integer maxAttendees;
+
     public String getTitle() {
         return title;
     }
@@ -77,5 +80,13 @@ public class EventRequestDTO {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Integer getMaxAttendees() {
+        return maxAttendees;
+    }
+
+    public void setMaxAttendees(Integer maxAttendees) {
+        this.maxAttendees = maxAttendees;
     }
 } 

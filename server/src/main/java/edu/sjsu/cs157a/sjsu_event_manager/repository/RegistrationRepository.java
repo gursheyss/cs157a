@@ -28,44 +28,42 @@ public class RegistrationRepository {
     private final JdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
+    private final RowMapper<Registration> registrationRowMapper;
 
     @Autowired
     public RegistrationRepository(DataSource dataSource, UserRepository userRepository, EventRepository eventRepository) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
+
+        this.registrationRowMapper = (rs, rowNum) -> {
+            Registration registration = new Registration();
+            int registrationId = rs.getInt("registration_id");
+            registration.setRegistrationId(registrationId);
+            registration.setRegistrationTime(rs.getTimestamp("registration_time").toLocalDateTime());
+
+            int userId = rs.getInt("user_id");
+            try {
+                this.userRepository.findById(userId).ifPresentOrElse(
+                    registration::setUser,
+                    () -> log.warn("User with ID {} not found for registration ID {}", userId, registrationId)
+                );
+            } catch (DataAccessException e) {
+                log.error("Error fetching user {} for registration {}: {}", userId, registrationId, e.getMessage());
+            }
+
+            int eventId = rs.getInt("event_id");
+            try {
+                this.eventRepository.findById(eventId).ifPresentOrElse(
+                    registration::setEvent,
+                    () -> log.warn("Event with ID {} not found for registration ID {}", eventId, registrationId)
+                );
+            } catch (DataAccessException e) {
+                log.error("Error fetching event {} for registration {}: {}", eventId, registrationId, e.getMessage());
+            }
+            return registration;
+        };
     }
-
-    // this maps a row from the database to a Registration object
-    // it also loads the user and event for the registration
-    private final RowMapper<Registration> registrationRowMapper = (rs, rowNum) -> {
-        Registration registration = new Registration();
-        int registrationId = rs.getInt("registration_id");
-        registration.setRegistrationId(registrationId);
-        registration.setRegistrationTime(rs.getTimestamp("registration_time").toLocalDateTime());
-
-        int userId = rs.getInt("user_id");
-        try {
-            userRepository.findById(userId).ifPresentOrElse(
-                registration::setUser,
-                () -> log.warn("User with ID {} not found for registration ID {}", userId, registrationId)
-            );
-        } catch (DataAccessException e) {
-            log.error("Error fetching user {} for registration {}: {}", userId, registrationId, e.getMessage());
-        }
-
-        int eventId = rs.getInt("event_id");
-        try {
-            eventRepository.findById(eventId).ifPresentOrElse(
-                registration::setEvent,
-                 () -> log.warn("Event with ID {} not found for registration ID {}", eventId, registrationId)
-            );
-        } catch (DataAccessException e) {
-             log.error("Error fetching event {} for registration {}: {}", eventId, registrationId, e.getMessage());
-        }
-
-        return registration;
-    };
 
     // get a registration by its id
     public Optional<Registration> findById(Integer registrationId) {

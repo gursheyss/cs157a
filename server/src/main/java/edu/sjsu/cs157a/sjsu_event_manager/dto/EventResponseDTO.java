@@ -15,8 +15,9 @@ public class EventResponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private long registrationCount;
+    private Integer maxAttendees;
 
-    public EventResponseDTO(Integer eventId, String title, String description, String location, LocalDateTime startTime, LocalDateTime endTime, String category, Integer organizerId, String organizerUsername, LocalDateTime createdAt, LocalDateTime updatedAt, long registrationCount) {
+    public EventResponseDTO(Integer eventId, String title, String description, String location, LocalDateTime startTime, LocalDateTime endTime, String category, Integer organizerId, String organizerUsername, LocalDateTime createdAt, LocalDateTime updatedAt, long registrationCount, Integer maxAttendees) {
         this.eventId = eventId;
         this.title = title;
         this.description = description;
@@ -29,6 +30,7 @@ public class EventResponseDTO {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.registrationCount = registrationCount;
+        this.maxAttendees = maxAttendees;
     }
 
     public EventResponseDTO() {}
@@ -127,5 +129,13 @@ public class EventResponseDTO {
 
     public void setRegistrationCount(long registrationCount) {
         this.registrationCount = registrationCount;
+    }
+
+    public Integer getMaxAttendees() {
+        return maxAttendees;
+    }
+
+    public void setMaxAttendees(Integer maxAttendees) {
+        this.maxAttendees = maxAttendees;
     }
 } 

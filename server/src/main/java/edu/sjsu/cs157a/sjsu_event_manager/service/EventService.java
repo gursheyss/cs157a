@@ -59,6 +59,7 @@ public class EventService {
         event.setEndTime(eventRequestDTO.getEndTime());
         event.setCategory(eventRequestDTO.getCategory());
         event.setOrganizer(organizer);
+        event.setMaxAttendees(eventRequestDTO.getMaxAttendees());
 
         Event savedEvent = eventRepository.save(event);
         return mapToResponseDTO(savedEvent);
@@ -67,7 +68,7 @@ public class EventService {
     private EventResponseDTO mapToResponseDTO(Event event) {
         Integer organizerId = (event.getOrganizer() != null) ? event.getOrganizer().getUserId() : null;
         String organizerUsername = (event.getOrganizer() != null) ? event.getOrganizer().getUsername() : "Unknown";
-        long registrationCount = registrationRepository.countByEvent(event);
+        long registrationCount = registrationRepository.countByEventId(event.getEventId());
 
         return new EventResponseDTO(
             event.getEventId(),
@@ -81,7 +82,8 @@ public class EventService {
             organizerUsername,
             event.getCreatedAt(),
             event.getUpdatedAt(),
-            registrationCount
+            registrationCount,
+            event.getMaxAttendees()
         );
     }
 
@@ -104,6 +106,7 @@ public class EventService {
         event.setStartTime(eventRequestDTO.getStartTime());
         event.setEndTime(eventRequestDTO.getEndTime());
         event.setCategory(eventRequestDTO.getCategory());
+        event.setMaxAttendees(eventRequestDTO.getMaxAttendees());
 
         Event updatedEvent = eventRepository.save(event);
         return mapToResponseDTO(updatedEvent);
@@ -118,7 +121,7 @@ public class EventService {
             throw new AccessDeniedException("User is not authorized to delete this event");
         }
 
-        eventRepository.delete(event);
+        eventRepository.deleteById(eventId);
     }
 
     @Transactional
@@ -130,12 +133,12 @@ public class EventService {
             throw new ConflictException("Organizer cannot register for their own event.");
         }
 
-        boolean alreadyRegistered = registrationRepository.existsByUserAndEvent(participant, event);
+        boolean alreadyRegistered = registrationRepository.existsByUserAndEvent(participant.getUserId(), event.getEventId());
         if (alreadyRegistered) {
             throw new ConflictException("User is already registered for this event.");
         }
 
-        long currentRegistrations = registrationRepository.countByEvent(event);
+        long currentRegistrations = registrationRepository.countByEventId(event.getEventId());
         if (event.getMaxAttendees() != null && currentRegistrations >= event.getMaxAttendees()) {
             throw new ConflictException("Event is full.");
         }
@@ -149,10 +152,10 @@ public class EventService {
          Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
 
-        Registration registration = registrationRepository.findByUserAndEvent(participant, event)
+        Registration registration = registrationRepository.findByUserAndEvent(participant.getUserId(), event.getEventId())
                 .orElseThrow(() -> new ResourceNotFoundException("Registration", "user/event", participant.getUserId() + "/" + eventId)); // Or a more specific "NotRegisteredException"
 
-        registrationRepository.delete(registration);
+        registrationRepository.deleteById(registration.getRegistrationId());
     }
 
     @Transactional(readOnly = true)
@@ -164,7 +167,7 @@ public class EventService {
             throw new AccessDeniedException("User is not authorized to view registrations for this event");
         }
 
-        List<Registration> registrations = registrationRepository.findByEvent(event);
+        List<Registration> registrations = registrationRepository.findByEventId(event.getEventId());
         
         return registrations.stream()
                             .map(reg -> new RegistrationResponseDTO(reg, true)) 
@@ -173,7 +176,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<RegistrationResponseDTO> getRegistrationsForUser(User currentUser) {
-        List<Registration> registrations = registrationRepository.findByUser(currentUser);
+        List<Registration> registrations = registrationRepository.findByUserId(currentUser.getUserId());
 
         return registrations.stream()
                             .map(RegistrationResponseDTO::new)
@@ -184,7 +187,7 @@ public class EventService {
     public boolean isUserRegistered(Integer eventId, User user) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-        return registrationRepository.existsByUserAndEvent(user, event);
+        return registrationRepository.existsByUserAndEvent(user.getUserId(), event.getEventId());
     }
 
     // --- TODO: Add methods for Update, Delete, Register, Deregister, GetRegistrations --- 
