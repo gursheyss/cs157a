@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -195,7 +196,24 @@ public class UserRepository {
             throw new RuntimeException("User insert failed for username: " + user.getUsername());
         }
 
-        Number key = keyHolder.getKey();
+        // Extract user_id from the generated keys
+        Number key = null;
+        if (keyHolder.getKeys() != null && !keyHolder.getKeys().isEmpty()) {
+            Map<String, Object> keys = keyHolder.getKeys();
+            if (keys.containsKey("user_id")) {
+                key = (Number) keys.get("user_id");
+            } else if (keyHolder.getKeyList().size() > 0) {
+                Map<String, Object> firstKeyMap = keyHolder.getKeyList().get(0);
+                if (firstKeyMap.containsKey("user_id")) {
+                    key = (Number) firstKeyMap.get("user_id");
+                }
+            }
+        }
+        
+        if (key == null && keyHolder.getKey() != null) {
+            key = keyHolder.getKey();
+        }
+
         if (key != null) {
             user.setUserId(key.intValue());
             log.info("Successfully inserted user with ID: {} and username: {}", user.getUserId(), user.getUsername());

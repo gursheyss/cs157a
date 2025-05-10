@@ -158,7 +158,7 @@ public class EventService {
         registrationRepository.deleteById(registration.getRegistrationId());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<RegistrationResponseDTO> getRegistrationsForEvent(Integer eventId, User currentUser) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
@@ -167,11 +167,10 @@ public class EventService {
             throw new AccessDeniedException("User is not authorized to view registrations for this event");
         }
 
-        List<Registration> registrations = registrationRepository.findByEventId(event.getEventId());
-        
+        List<Registration> registrations = registrationRepository.findByEventId(eventId);
         return registrations.stream()
-                            .map(reg -> new RegistrationResponseDTO(reg, true)) 
-                            .collect(Collectors.toList());
+                .map(r -> new RegistrationResponseDTO(r, true)) // true = include user details
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -184,10 +183,22 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public boolean isUserRegistered(Integer eventId, User user) {
+    public boolean isUserRegistered(Integer eventId, Integer userId) {
+        if (!eventRepository.existsById(eventId)) {
+            throw new ResourceNotFoundException("Event", "id", eventId);
+        }
+        
+        return registrationRepository.existsByEventIdAndUserId(eventId, userId);
+    }
+
+    @Transactional
+    public EventResponseDTO updateEventTitle(Integer eventId, String newTitle) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-        return registrationRepository.existsByUserAndEvent(user.getUserId(), event.getEventId());
+        
+        event.setTitle(newTitle);
+        Event updatedEvent = eventRepository.save(event);
+        return mapToResponseDTO(updatedEvent);
     }
 
     // --- TODO: Add methods for Update, Delete, Register, Deregister, GetRegistrations --- 

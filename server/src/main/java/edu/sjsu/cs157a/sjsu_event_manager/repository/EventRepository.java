@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -178,7 +179,23 @@ public class EventRepository {
              throw new RuntimeException("Event insert failed for title: " + event.getTitle());
         }
 
-        Number key = keyHolder.getKey();
+        Number key = null;
+        if (keyHolder.getKeys() != null && !keyHolder.getKeys().isEmpty()) {
+            Map<String, Object> keys = keyHolder.getKeys();
+            if (keys.containsKey("event_id")) {
+                key = (Number) keys.get("event_id");
+            } else if (keyHolder.getKeyList().size() > 0) {
+                Map<String, Object> firstKeyMap = keyHolder.getKeyList().get(0);
+                if (firstKeyMap.containsKey("event_id")) {
+                    key = (Number) firstKeyMap.get("event_id");
+                }
+            }
+        }
+        
+        if (key == null && keyHolder.getKey() != null) {
+            key = keyHolder.getKey();
+        }
+
         if (key != null) {
             event.setEventId(key.intValue());
             log.info("Successfully inserted event with ID: {} and title: {}", event.getEventId(), event.getTitle());

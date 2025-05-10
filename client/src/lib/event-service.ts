@@ -195,13 +195,44 @@ export const updateEvent = async (
   id: number,
   eventData: EventRequestDTO
 ): Promise<EventResponseDTO> => {
-  console.warn(`updateEvent(${id}) API call not implemented yet.`);
-  // TODO: Implement with fetch, PUT method, credentials: 'include'
-  throw new Error("updateEvent not implemented");
+  const response = await fetch(`${API_BASE_URL}/api/events/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(eventData),
+    credentials: "include",
+  });
+
+  return handleResponse<EventResponseDTO>(response);
 };
 
 export const deleteEvent = async (id: number): Promise<void> => {
   console.warn(`deleteEvent(${id}) API call not implemented yet.`);
   // TODO: Implement with fetch, DELETE method, credentials: 'include'
   throw new Error("deleteEvent not implemented");
+};
+
+/**
+ * Updates just the title of an event.
+ * This endpoint allows anyone to update the title without permission checks.
+ *
+ * @param id - The ID of the event.
+ * @param title - The new title for the event.
+ * @returns A promise that resolves to the updated event data.
+ */
+export const updateEventTitle = async (
+  id: number,
+  title: string
+): Promise<EventResponseDTO> => {
+  const response = await fetch(`${API_BASE_URL}/api/events/${id}/title`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ title }),
+    credentials: "include",
+  });
+
+  return handleResponse<EventResponseDTO>(response);
 };

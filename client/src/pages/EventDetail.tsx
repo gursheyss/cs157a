@@ -6,6 +6,7 @@ import {
   deregisterFromEvent,
   getEventRegistrations,
   checkRegistrationStatus,
+  updateEventTitle,
 } from "@/lib/event-service";
 import { Event, Registration, EventResponseDTO } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Check, X, Edit } from "lucide-react";
 
 const EventDetail = () => {
   const { id: routeId } = useParams<{ id: string }>();
@@ -22,6 +25,9 @@ const EventDetail = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [actionLoading, setActionLoading] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState("");
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
   const { currentUser, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -139,6 +145,44 @@ const EventDetail = () => {
   const isOrganizer =
     currentUser && event && currentUser.id === event.organizerId.toString();
 
+  const startEditingTitle = () => {
+    if (event) {
+      setTitleValue(event.title);
+      setIsEditingTitle(true);
+    }
+  };
+
+  const cancelEditingTitle = () => {
+    setIsEditingTitle(false);
+  };
+
+  const handleSaveTitle = async () => {
+    if (!event || !titleValue.trim() || titleValue === event.title) {
+      setIsEditingTitle(false);
+      return;
+    }
+
+    setIsSavingTitle(true);
+    try {
+      const updatedEvent = await updateEventTitle(event.eventId, titleValue);
+      setEvent(updatedEvent);
+      toast({
+        title: "Success",
+        description: "Event title updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update event title",
+        variant: "destructive",
+      });
+      console.error("Error updating event title:", error);
+    } finally {
+      setIsSavingTitle(false);
+      setIsEditingTitle(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center items-center h-64">
@@ -199,7 +243,48 @@ const EventDetail = () => {
                 )}
               </div>
 
-              <h1 className="text-3xl font-bold mb-2">{event.title}</h1>
+              {isEditingTitle ? (
+                <div className="mb-4 flex items-center gap-2">
+                  <Input
+                    value={titleValue}
+                    onChange={(e) => setTitleValue(e.target.value)}
+                    placeholder="Event title"
+                    className="text-2xl font-bold py-2"
+                    autoFocus
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={handleSaveTitle}
+                    disabled={isSavingTitle}
+                    className="text-green-600 hover:bg-green-50"
+                  >
+                    <Check className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={cancelEditingTitle}
+                    disabled={isSavingTitle}
+                    className="text-red-600 hover:bg-red-50"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mb-2">
+                  <h1 className="text-3xl font-bold">{event.title}</h1>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={startEditingTitle}
+                    className="text-slate-400 hover:text-slate-700"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
               <p className="text-gray-600 mb-6">{formattedDate}</p>
 
               <div className="mb-6">

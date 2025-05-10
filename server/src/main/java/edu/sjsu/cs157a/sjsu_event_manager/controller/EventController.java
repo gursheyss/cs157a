@@ -214,15 +214,37 @@ public class EventController {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
 
         try {
-            boolean isRegistered = eventService.isUserRegistered(id, currentUser);
-            return ResponseEntity.ok(Map.of("isRegistered", isRegistered));
+            boolean isRegistered = eventService.isUserRegistered(id, currentUser.getUserId());
+            Map<String, Boolean> response = Map.of("isRegistered", isRegistered);
+            return ResponseEntity.ok(response);
         } catch (ResourceNotFoundException ex) {
-            // If event doesn't exist, they are not registered for it
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                 .body(Map.of("isRegistered", false, "message", ex.getMessage())); 
+                                 .body(new MessageResponse(ex.getMessage()));
         } catch (Exception ex) {
              return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                  .body(Map.of("isRegistered", false, "message", "Error checking registration status: " + ex.getMessage()));
+                                  .body(new MessageResponse("Error checking registration status: " + ex.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/title")
+    public ResponseEntity<?> updateEventTitle(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request) {
+        
+        String newTitle = request.get("title");
+        if (newTitle == null || newTitle.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Title cannot be empty"));
+        }
+
+        try {
+            EventResponseDTO updatedEvent = eventService.updateEventTitle(id, newTitle);
+            return ResponseEntity.ok(updatedEvent);
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .body(new MessageResponse(ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body(new MessageResponse("Error updating event title: " + ex.getMessage()));
         }
     }
 

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 // this class handles database operations for registrations using jdbc
@@ -210,7 +211,24 @@ public class RegistrationRepository {
              throw new RuntimeException("Registration insert failed.");
         }
 
-        Number key = keyHolder.getKey();
+        // Extract registration_id from the generated keys
+        Number key = null;
+        if (keyHolder.getKeys() != null && !keyHolder.getKeys().isEmpty()) {
+            Map<String, Object> keys = keyHolder.getKeys();
+            if (keys.containsKey("registration_id")) {
+                key = (Number) keys.get("registration_id");
+            } else if (keyHolder.getKeyList().size() > 0) {
+                Map<String, Object> firstKeyMap = keyHolder.getKeyList().get(0);
+                if (firstKeyMap.containsKey("registration_id")) {
+                    key = (Number) firstKeyMap.get("registration_id");
+                }
+            }
+        }
+        
+        if (key == null && keyHolder.getKey() != null) {
+            key = keyHolder.getKey();
+        }
+
         if (key != null) {
             registration.setRegistrationId(key.intValue());
             // set the time we used for the insert
@@ -252,8 +270,8 @@ public class RegistrationRepository {
         log.debug("Executing SQL: {} with registrationId: {}", sql, registrationId);
         try {
             int rowsAffected = jdbcTemplate.update(sql, registrationId);
-             if (rowsAffected == 0) {
-                log.warn("Attempted to delete registration with ID {} but no rows were affected.", registrationId);
+            if (rowsAffected == 0) {
+                log.warn("Attempted to delete registration with ID {} but no rows were affected. Registration might not exist.", registrationId);
             } else {
                 log.info("Successfully deleted registration with ID: {}", registrationId);
             }
