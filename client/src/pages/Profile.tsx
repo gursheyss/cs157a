@@ -21,7 +21,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
 const Profile = () => {
-  const { currentUser, isAuthenticated } = useAuth();
+  const { currentUser, isAuthenticated, isLoading: authIsLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userRegistrations, setUserRegistrations] = useState<Registration[]>(
@@ -35,6 +35,10 @@ const Profile = () => {
   const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
 
   useEffect(() => {
+    if (authIsLoading) {
+      return;
+    }
+
     if (!isAuthenticated) {
       navigate("/login");
       return;
@@ -79,15 +83,14 @@ const Profile = () => {
     };
 
     fetchData();
-  }, [currentUser, isAuthenticated, navigate, toast]);
+  }, [currentUser, isAuthenticated, navigate, toast, authIsLoading]);
 
   const handleCancelRegistration = async (
     registrationId: string,
-    eventIdString: string
+    eventId: number
   ) => {
-    const eventId = parseInt(eventIdString, 10);
     if (isNaN(eventId)) {
-      console.error("Invalid event ID for cancellation:", eventIdString);
+      console.error("Invalid event ID for cancellation:", eventId);
       toast({
         title: "Error",
         description: "Invalid event ID.",
@@ -151,7 +154,7 @@ const Profile = () => {
     }
   };
 
-  if (loading) {
+  if (authIsLoading || loading) {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sjsu-blue"></div>
@@ -212,22 +215,24 @@ const Profile = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {userRegistrations.map((registration) => {
-                  if (!registration.event) {
+                  if (
+                    !registration.eventTitle ||
+                    !registration.eventStartTime
+                  ) {
                     return (
                       <Card
                         key={registration.id}
                         className="opacity-60 p-4 border-red-300 border"
                       >
                         <p className="text-sm font-medium text-red-700">
-                          Error: Event details unavailable for Registration ID:{" "}
-                          {registration.id}
+                          Error: Essential event details are missing for
+                          Registration ID: {registration.id}
                         </p>
                       </Card>
                     );
                   }
-                  const event = registration.event;
                   const formattedDate = format(
-                    new Date(event.startTime),
+                    new Date(registration.eventStartTime),
                     "MMM d, yyyy 'at' h:mm a"
                   );
                   const isCancelling =
@@ -236,7 +241,7 @@ const Profile = () => {
                   return (
                     <Card key={registration.id} className="overflow-hidden">
                       <CardHeader className="pb-2">
-                        <h3 className="font-bold">{event.title}</h3>
+                        <h3 className="font-bold">{registration.eventTitle}</h3>
                         <p className="text-sm text-muted-foreground">
                           {formattedDate}
                         </p>
@@ -244,7 +249,7 @@ const Profile = () => {
                       <CardContent className="pb-2">
                         <p className="text-sm">
                           <span className="font-medium">Location:</span>{" "}
-                          {event.location}
+                          {registration.eventLocation}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           Registered on{" "}
@@ -258,7 +263,9 @@ const Profile = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/events/${event.eventId}`)}
+                          onClick={() =>
+                            navigate(`/events/${registration.eventId}`)
+                          }
                         >
                           View Details
                         </Button>
@@ -268,7 +275,7 @@ const Profile = () => {
                           onClick={() =>
                             handleCancelRegistration(
                               registration.id,
-                              event.eventId.toString()
+                              registration.eventId
                             )
                           }
                           disabled={isCancelling}
